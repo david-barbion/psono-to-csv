@@ -1,49 +1,56 @@
 const fs = require('fs');
 const args = process.argv;
-const inputFile = args[2] || 'vault.json';
-const outputFile = args[3] || 'vault.csv';
+const inputFile = args[2] || 'psono.json';
+const outputFile = args[3] || 'passbolt.csv';
 
 console.log('\nREADING: ' + inputFile + '\n');
+
+function parseFolder(items, csv, fieldMapping) {
+  items.forEach(folder => {
+    const rowData = {
+      grouping: '"' + folder.name + '"',
+      title: '',
+      username: '',
+      password: '',
+      url: '',
+      notes: '',
+    };
+    if (folder.items) {
+      folder.items.forEach(item => {
+        console.log("add item " + item.name + " for folder " + folder.name);
+        Object.keys(fieldMapping).forEach(type => {
+          console.log("field " + type + " ==> " + fieldMapping[type]);
+          rowData[fieldMapping[type]] = '"' + item[type] + '"';
+        });
+        csv.push(
+          Object.keys(rowData)
+            .map(key => rowData[key])
+            .join(','),
+        );
+      });
+    }
+    if (folder.folders) {
+      console.log("parsing subfolder " + folder.name);
+      csv.push(parseFolder(folder.folders, csv, fieldMapping));
+    }
+  });
+  return (csv);
+}
 
 try {
   const contents = fs.readFileSync(inputFile);
   const vault = JSON.parse(contents);
 
-  const csvOutput = ['url,username,password,extra,name,grouping,fav'];
+  const csvOutput = ['"Group","Title","Username","Password","URL","Notes"'];
   const fieldMapping = {
-    url: 'url',
-    username: 'username',
-    email: 'username',
-    password: 'password',
+    name: 'title',
+    website_password_username: 'username',
+    website_password_password: 'password',
+    website_password_url: 'url',
+    website_password_notes: 'notes',
   };
 
-  vault.items.forEach(item => {
-    const rowData = {
-      url: '',
-      username: '',
-      password: '',
-      extra: '',
-      name: item.title,
-      grouping: '',
-      fav: item.favourite,
-    };
-
-    Object.keys(fieldMapping).forEach(type => {
-      const key = fieldMapping[type];
-      item.fields.forEach(field => {
-        if (field.type === type) {
-          if (field.value && !rowData[key]) {
-            rowData[key] = '"' + field.value + '"';
-          }
-        }
-      });
-    });
-    csvOutput.push(
-      Object.keys(rowData)
-        .map(key => rowData[key])
-        .join(','),
-    );
-  });
+  csvOutput.push(parseFolder(vault.folders, csvOutput, fieldMapping));
 
   console.log('WRITING: ' + outputFile + '\n');
   fs.writeFileSync(outputFile, csvOutput.join('\n'));
