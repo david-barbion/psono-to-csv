@@ -1,6 +1,6 @@
-# Enpass to CSV
+# Psono to CSV
 
-A simple script to convert the exported vault json from Enpass 6 to a csv file
+A simple script to convert the exported psono json from Psono to a csv file (Passbolt/KeepassX format)
 
 ## Requirements
 
@@ -9,7 +9,7 @@ A simple script to convert the exported vault json from Enpass 6 to a csv file
 
 ## Usage
 
-Export your Enpass 6 vault into json format from the desktop application
+Export your Psono database into json format from the client application
 
 Run the following command and provide the location of the input and output files
 
@@ -17,8 +17,13 @@ Run the following command and provide the location of the input and output files
 node parse.js <path to json file> <path to csv output file>
 ```
 
-By default, it will read `vault.json` and output `vault.csv` in local directory
+By default, it will read `psono.json` and output `passbolt.csv` in local directory
 
 ### Disclaimer
 
 Use at own risk. Please verify the csv output yourself before importing to another password manager
+
+### Acknowledgement
+
+This work was inspired by https://github.com/migvill/enpass-to-csv
+
